@@ -12,7 +12,17 @@ The full mapping of the arguments is in the provider guide
 
 1. Upgrade to a provider version that has the `_v2` resources.
 
-2. Run `terraform plan` with the `_v1` configuration. It must show no changes.
+2. Current provider versions require `auth_region` and `auth_url`. Add them to the `_v1` provider block,
+or export `OS_REGION_NAME` and `OS_AUTH_URL`.
+
+3. Run `terraform plan` with the `_v1` configuration. It must show no changes.
+
+4. Write down the `kube_version` of the cluster from the `_v1` state. You pass it to this example as
+`TF_VAR_kube_version`:
+
+    ```sh
+    terraform state show module.kubernetes_cluster.selectel_mks_cluster_v1.cluster_1
+    ```
 
 ## Move with `moved` blocks (Terraform 1.8.0 and later)
 
@@ -22,17 +32,22 @@ The full mapping of the arguments is in the provider guide
     * cluster: `region` is now `pool`; set `workers_type = "CLOUD"`, because `_v1` creates only cloud clusters;
     if the `_v1` cluster had `zonal = true`, set `cluster_type = "BASIC"`;
 
-    * nodegroup: `availability_zone` is now `segment`; remove `project_id`, `region` and `keypair_name`;
+    * cluster: set `kube_version` to the value from the `_v1` state instead of the kube versions data source.
+    The default version of the data source can be higher than the version the cluster runs, and the plan
+    would then upgrade the cluster;
 
-    * the kube versions data source is now `selectel_mks_kube_versions_v2` with `pool` instead of `region`.
+    * cluster: keep `cluster_name` spelled as in `_v1`. The API stores the cluster name in lower case, and the
+    provider compares it case-insensitively;
+
+    * nodegroup: `availability_zone` is now `segment`; remove `project_id`, `region` and `keypair_name`.
 
     `zonal`, `enable_pod_security_policy` and `keypair_name` are removed from the `_v2` resources:
     remove them from the configuration.
 
 2. Add a `selectel` provider with `project_id` and pass it to the nodegroup module, as `selectel.project` in `main.tf`:
 `selectel_mks_nodegroup_v2` takes the project from the provider configuration. As an alternative,
-set the `INFRA_PROJECT_ID` environment variable. Both provider blocks also set `auth_region` and `auth_url`,
-which the current provider versions require.
+set the `INFRA_PROJECT_ID` environment variable. The `project_id` must be the project of the cluster, which is
+the `project_id` of the `_v1` nodegroup. With clusters in several projects, use one provider alias per project.
 
 3. Add a `moved` block for the cluster and for each of its nodegroups. Move a cluster together with all
 its nodegroups in the same run:
@@ -50,6 +65,7 @@ its nodegroups in the same run:
     ```
 
 4. Run `terraform plan`. Every resource must show `has moved to` and no changes. If the plan shows
+any error, `must be replaced` or `forces replacement`, stop and do not apply. If it shows other
 changes, compare the `_v2` arguments with the cluster: the values that `_v1` kept in the state are now
 compared with the `_v2` configuration.
 
@@ -59,7 +75,7 @@ compared with the `_v2` configuration.
 
 ## Earlier Terraform versions
 
-Terraform earlier than 1.8.0 cannot move state between resource types. Delete the `moved` blocks, lower
+Terraform earlier than 1.8.0 cannot move state between resource types. Do steps 1 and 2 above, delete the `moved` blocks, lower
 `required_version` in `versions.tf`, then remove the `_v1` resources from the state without destroying them
 and import the `_v2` ones (in Terraform 1.7, `removed` blocks with `destroy = false` can replace
 `terraform state rm`):
@@ -75,7 +91,8 @@ terraform import module.kubernetes_cluster.selectel_mks_cluster_v2.cluster_1 <cl
 terraform import module.kubernetes_nodegroup.selectel_mks_nodegroup_v2.nodegroup_1 <cluster_id>/<nodegroup_id>
 ```
 
-Then run `terraform plan`. The API does not return `cpus`, `ram_mb` and `affinity_policy` of a nodegroup, so
+Then run `terraform plan`. If it shows any error, `must be replaced` or `forces replacement`, stop and
+do not apply. The API does not return `cpus`, `ram_mb` and `affinity_policy` of a nodegroup, so
 they stay empty after the import; the next `terraform apply` fills them from the configuration and does not
 recreate the nodegroup. See the provider guide for the details.
 
@@ -88,5 +105,6 @@ env \
   TF_VAR_username="USER" \
   TF_VAR_password="PASSWORD" \
   TF_VAR_domain_name="ACCOUNT_ID" \
+  TF_VAR_kube_version="KUBE_VERSION" \
   terraform plan
 ```

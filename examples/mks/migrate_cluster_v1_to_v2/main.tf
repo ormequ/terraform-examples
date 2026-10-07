@@ -38,18 +38,13 @@ module "project" {
   project_name = var.project_name
 }
 
-data "selectel_mks_kube_versions_v2" "versions" {
-  project_id = module.project.project_id
-  pool       = var.pool
-}
-
 module "kubernetes_cluster" {
   source = "../../../modules/mks/cluster_v2"
 
   cluster_name                      = var.cluster_name
   project_id                        = module.project.project_id
   pool                              = var.pool
-  kube_version                      = data.selectel_mks_kube_versions_v2.versions.default_version
+  kube_version                      = var.kube_version
   workers_type                      = "CLOUD"
   enable_autorepair                 = var.enable_autorepair
   enable_patch_version_auto_upgrade = var.enable_patch_version_auto_upgrade

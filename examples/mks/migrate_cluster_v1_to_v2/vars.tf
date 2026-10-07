@@ -20,6 +20,10 @@ variable "pool" {
   default = "ru-9"
 }
 
+variable "kube_version" {
+  description = "The value of kube_version in the _v1 state: terraform state show module.kubernetes_cluster.selectel_mks_cluster_v1.cluster_1"
+}
+
 variable "enable_autorepair" {
   default = true
 }
