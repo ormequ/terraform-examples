@@ -4,5 +4,6 @@ terraform {
       source = "selectel/selectel"
     }
   }
-  required_version = ">= 0.13"
+  # Optional object attributes in a variable type need Terraform 1.3.0 or later.
+  required_version = ">= 1.3.0"
 }

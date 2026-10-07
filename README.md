@@ -14,6 +14,7 @@ services.
 │   │   ├── postgres_cluster
 │   │   └── redis_cluster
 │   ├── mks
+│   │   ├── cluster_dedicated_nodegroup_v2
 │   │   ├── cluster_one_nodegroup
 │   │   ├── cluster_one_nodegroup_v2
 │   │   ├── cluster_one_nodegroup_with_net_infra

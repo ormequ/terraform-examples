@@ -22,7 +22,9 @@ variable "volume_gb" {
   default = 20
 }
 
-variable "volume_type" {}
+variable "volume_type" {
+  default = null
+}
 
 variable "user_data" {
   default = null
@@ -43,5 +45,20 @@ variable "taints" {
     value  = string
     effect = string
   }))
+  default = null
+}
+
+variable "dedicated_nodegroup_config" {
+  type = object({
+    service_uuid             = string
+    price_plan_name          = string
+    root_size_gb             = optional(number)
+    create_storage_partition = optional(bool)
+    currency                 = optional(string)
+  })
+  default = null
+}
+
+variable "cidr" {
   default = null
 }
