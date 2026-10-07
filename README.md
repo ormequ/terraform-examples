@@ -15,7 +15,9 @@ services.
 │   │   └── redis_cluster
 │   ├── mks
 │   │   ├── cluster_one_nodegroup
-│   │   └── cluster_one_nodegroup_with_net_infra
+│   │   ├── cluster_one_nodegroup_v2
+│   │   ├── cluster_one_nodegroup_with_net_infra
+│   │   └── migrate_cluster_v1_to_v2
 │   ├── global_router
 │   │   ├── vpc_to_vpc
 │   │   ├── vpc_to_dedicated
@@ -41,8 +43,10 @@ services.
 └── modules
     ├── mks
     │   ├── cluster
+    │   ├── cluster_v2
     │   ├── nodegroup
-    │   └── nodegroup_local_disk
+    │   ├── nodegroup_local_disk
+    │   └── nodegroup_v2
     └── cloud
         ├── flavor
         ├── floatingip
